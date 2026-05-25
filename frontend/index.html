@@ -1,0 +1,200 @@
+
+cat > /home/claude/ecommerce_search/frontend/index.html << 'EOF'
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>E-Commerce Product Search — ADA Mini Project</title>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-inner">
+    <div class="logo">
+      <span class="logo-icon">🛒</span>
+      <div>
+        <div class="logo-title">ShopSearch</div>
+        <div class="logo-sub">ADA Mini Project — C Algorithms Visualizer</div>
+      </div>
+    </div>
+    <div class="header-stats">
+      <div class="stat-pill"><span id="stat-total">0</span> Products</div>
+      <div class="stat-pill algo-pill" id="last-algo">No algorithm run yet</div>
+    </div>
+  </div>
+</header>
+
+<main class="layout">
+
+  <!-- LEFT: CRUD + Search + Sort -->
+  <aside class="panel panel-left">
+    <div class="tabs">
+      <button class="tab active" data-tab="add">Add</button>
+      <button class="tab" data-tab="update">Update</button>
+      <button class="tab" data-tab="delete">Delete</button>
+      <button class="tab" data-tab="search">Search</button>
+      <button class="tab" data-tab="sort">Sort</button>
+    </div>
+
+    <!-- ADD -->
+    <div class="tab-content active" id="tab-add">
+      <h2 class="panel-title">Add New Product</h2>
+      <div class="form-group">
+        <label>Product Name</label>
+        <input type="text" id="add-name" placeholder="e.g. Nike Air Zoom"/>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Price (Rs.)</label>
+          <input type="number" id="add-price" placeholder="4999" min="0"/>
+        </div>
+        <div class="form-group">
+          <label>Rating (0-5)</label>
+          <input type="number" id="add-rating" placeholder="4.5" min="0" max="5" step="0.1"/>
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="addProduct()">+ Add Product</button>
+      <div id="add-msg" class="msg"></div>
+    </div>
+
+    <!-- UPDATE -->
+    <div class="tab-content" id="tab-update">
+      <h2 class="panel-title">Update Product</h2>
+      <div class="form-group">
+        <label>Product ID</label>
+        <div class="input-row">
+          <input type="number" id="upd-id" placeholder="Enter ID"/>
+          <button class="btn btn-secondary" onclick="loadForUpdate()">Load</button>
+        </div>
+      </div>
+      <div id="upd-fields" style="display:none">
+        <div class="form-group">
+          <label>New Name</label>
+          <input type="text" id="upd-name"/>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>New Price</label>
+            <input type="number" id="upd-price" min="0"/>
+          </div>
+          <div class="form-group">
+            <label>New Rating</label>
+            <input type="number" id="upd-rating" min="0" max="5" step="0.1"/>
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="updateProduct()">Update Product</button>
+      </div>
+      <div id="upd-msg" class="msg"></div>
+    </div>
+
+    <!-- DELETE -->
+    <div class="tab-content" id="tab-delete">
+      <h2 class="panel-title">Delete Product</h2>
+      <div class="form-group">
+        <label>Product ID</label>
+        <input type="number" id="del-id" placeholder="Enter Product ID"
+               oninput="previewDelete()"/>
+      </div>
+      <div id="del-preview" class="preview-card" style="display:none"></div>
+      <button class="btn btn-danger" onclick="deleteProduct()">Delete Product</button>
+      <div id="del-msg" class="msg"></div>
+    </div>
+
+    <!-- SEARCH -->
+    <div class="tab-content" id="tab-search">
+      <h2 class="panel-title">Search Products</h2>
+      <div class="form-group">
+        <label>Algorithm</label>
+        <select id="search-algo" onchange="toggleSearchInput()">
+          <option value="linear">Linear Search — O(n)</option>
+          <option value="binary-name">Binary Search by Name — O(log n)</option>
+          <option value="binary-id">Binary Search by ID — O(log n)</option>
+        </select>
+      </div>
+      <div class="form-group" id="search-kw-group">
+        <label>Keyword / Prefix</label>
+        <input type="text" id="search-kw" placeholder="e.g. nike"/>
+      </div>
+      <div class="form-group" id="search-id-group" style="display:none">
+        <label>Product ID</label>
+        <input type="number" id="search-id" placeholder="e.g. 3"/>
+      </div>
+      <button class="btn btn-primary" onclick="runSearch()">Search</button>
+      <div id="search-msg" class="msg"></div>
+    </div>
+
+    <!-- SORT -->
+    <div class="tab-content" id="tab-sort">
+      <h2 class="panel-title">Sort Products</h2>
+      <div class="algo-cards">
+        <div class="algo-card" onclick="runSort('bubble')">
+          <div class="algo-name">Bubble Sort</div>
+          <div class="algo-meta">Price asc &nbsp;|&nbsp; O(n²)</div>
+        </div>
+        <div class="algo-card" onclick="runSort('selection')">
+          <div class="algo-name">Selection Sort</div>
+          <div class="algo-meta">Rating desc &nbsp;|&nbsp; O(n²)</div>
+        </div>
+        <div class="algo-card" onclick="runSort('insertion')">
+          <div class="algo-name">Insertion Sort</div>
+          <div class="algo-meta">Name A-Z &nbsp;|&nbsp; O(n²)</div>
+        </div>
+        <div class="algo-card fast" onclick="runSort('quick')">
+          <div class="algo-name">Quick Sort ⚡</div>
+          <div class="algo-meta">Price asc &nbsp;|&nbsp; O(n log n)</div>
+        </div>
+        <div class="algo-card fast" onclick="runSort('merge')">
+          <div class="algo-name">Merge Sort ⚡</div>
+          <div class="algo-meta">Rating desc &nbsp;|&nbsp; O(n log n)</div>
+        </div>
+      </div>
+      <div id="sort-msg" class="msg"></div>
+    </div>
+  </aside>
+
+  <!-- RIGHT: Table + Trace -->
+  <section class="panel panel-right">
+    <div class="table-header">
+      <h2 class="panel-title" style="margin:0">Product Catalog</h2>
+      <div class="table-controls">
+        <input type="text" id="live-search" placeholder="Filter table…" oninput="filterTable()"/>
+        <button class="btn btn-ghost" onclick="resetTable()">Reset</button>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table id="product-table">
+        <thead>
+          <tr>
+            <th onclick="sortCol(0)">ID ⇅</th>
+            <th onclick="sortCol(1)">Product Name ⇅</th>
+            <th onclick="sortCol(2)">Price ⇅</th>
+            <th onclick="sortCol(3)">Rating ⇅</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="table-body"></tbody>
+      </table>
+    </div>
+
+    <div class="trace-panel">
+      <div class="trace-header">
+        <span class="trace-title">Algorithm Trace</span>
+        <button class="btn btn-ghost btn-sm" onclick="clearTrace()">Clear</button>
+      </div>
+      <div id="trace-log" class="trace-log">
+        <div class="trace-line muted">Run a search or sort to see step-by-step trace here...</div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div id="toast" class="toast"></div>
+
+<script src="data.js"></script>
+<script src="algorithms.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
